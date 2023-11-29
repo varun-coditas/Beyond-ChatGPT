@@ -2,7 +2,9 @@
 
 # OpenAI Chat completion
 
-import openai  # importing openai for API usage
+from openai import AsyncOpenAI
+
+aclient = AsyncOpenAI()  # importing openai for API usage
 import chainlit as cl  # importing chainlit for our app
 from chainlit.input_widget import (
     Select,
@@ -65,10 +67,8 @@ async def main(message):
     msg = cl.Message(content="")
 
     # Call OpenAI
-    async for stream_resp in await openai.ChatCompletion.acreate(
-        messages=[m.to_openai() for m in prompt.messages], stream=True, **settings
-    ):
-        token = stream_resp.choices[0]["delta"].get("content", "")
+    async for stream_resp in await aclient.chat.completions.create(messages=[m.to_openai() for m in prompt.messages], stream=True, **settings):
+        token = stream_resp.choices[0].delta.content if stream_resp.choices[0].delta.content else ""
         await msg.stream_token(token)
 
     # Update the prompt object with the completion
